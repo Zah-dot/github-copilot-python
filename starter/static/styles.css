@@ -90,3 +90,60 @@ button:hover {
     font-size: 16px;
     color: #d32f2f;
 }
+
+#player-name {
+    padding: 8px 10px;
+    font-size: 14px;
+    width: 140px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+#leaderboard-panel {
+    width: min(540px, 90vw);
+    margin: 20px auto 40px;
+    background: #fff;
+    border: 1px solid #d7d7d7;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 16px 20px;
+}
+
+#leaderboard-panel h2 {
+    margin: 0 0 12px;
+    color: #333;
+    font-size: 22px;
+}
+
+#leaderboard-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.score-item {
+    display: grid;
+    grid-template-columns: 40px minmax(110px, 1.3fr) 90px 110px;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+    color: #222;
+}
+
+.score-item:last-child {
+    border-bottom: none;
+}
+
+.score-item.header {
+    font-weight: bold;
+    color: #666;
+}
+
+.score-item.empty {
+    display: block;
+    text-align: center;
+    color: #666;
+    padding-top: 8px;
+}

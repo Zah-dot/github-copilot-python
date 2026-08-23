@@ -15,6 +15,8 @@
       <option value="medium">Medium</option>
       <option value="hard">Hard</option>
     </select>
+    <label for="player-name">Player:</label>
+    <input id="player-name" type="text" maxlength="20" placeholder="Your name" value="Player" />
     <button id="new-game">New Game</button>
     <button id="hint-button">Hint</button>
     <button id="check-solution">Check Solution</button>
@@ -22,6 +24,12 @@
     <span id="message"></span>
     <span id="hints-used" style="margin-left:12px">Hints used: 0</span>
   </div>
+
+  <div id="leaderboard-panel" aria-live="polite">
+    <h2>Top 10 Scores</h2>
+    <ol id="leaderboard-list"></ol>
+  </div>
+
   <script src="/static/main.js"></script>
 </body>
 </html>

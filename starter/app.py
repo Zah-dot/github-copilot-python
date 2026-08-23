@@ -15,6 +15,7 @@ CURRENT = {
     'timer_started_at': None,
     'timer_completed_at': None,
     'timer_elapsed_seconds': 0,
+    'completed': False,
 }
 
 @app.route('/')
@@ -41,11 +42,13 @@ def new_game():
     CURRENT['timer_started_at'] = time.time()
     CURRENT['timer_completed_at'] = None
     CURRENT['timer_elapsed_seconds'] = 0
+    CURRENT['completed'] = False
     return jsonify({
         'puzzle': puzzle,
         'difficulty': difficulty,
         'timer_started_at': CURRENT['timer_started_at'],
         'timer_elapsed_seconds': CURRENT['timer_elapsed_seconds'],
+        'completed': CURRENT['completed'],
     })
 
 @app.route('/check', methods=['POST'])
@@ -55,6 +58,7 @@ def check_solution():
     solution = CURRENT.get('solution')
     if solution is None:
         return jsonify({'error': 'No game in progress'}), 400
+    CURRENT['completed'] = False
     incorrect = []
     for i in range(sudoku_logic.SIZE):
         for j in range(sudoku_logic.SIZE):
@@ -63,6 +67,7 @@ def check_solution():
 
     solved = not incorrect
     if solved:
+        CURRENT['completed'] = True
         CURRENT['timer_completed_at'] = time.time()
         if CURRENT['timer_started_at'] is not None:
             CURRENT['timer_elapsed_seconds'] = max(0, int(CURRENT['timer_completed_at'] - CURRENT['timer_started_at']))
@@ -71,6 +76,7 @@ def check_solution():
         return jsonify({
             'incorrect': [],
             'solved': True,
+            'completed': True,
             'elapsed_seconds': CURRENT['timer_elapsed_seconds'],
             'timer_completed_at': CURRENT['timer_completed_at'],
         })
@@ -83,6 +89,7 @@ def check_solution():
     return jsonify({
         'incorrect': incorrect,
         'solved': False,
+        'completed': False,
         'elapsed_seconds': CURRENT['timer_elapsed_seconds'],
     })
 

@@ -78,6 +78,8 @@ def test_check_route_accepts_correct_solution():
 
     assert response.status_code == 200
     assert data['incorrect'] == []
+    assert data['completed'] is True
+    assert app.CURRENT['completed'] is True
 
 
 def test_check_route_reports_incorrect_cells():
@@ -175,6 +177,20 @@ def test_new_game_starts_timer_state():
     assert app.CURRENT['timer_started_at'] >= before
     assert app.CURRENT['timer_completed_at'] is None
     assert app.CURRENT['timer_elapsed_seconds'] == 0
+    assert app.CURRENT['completed'] is False
+
+
+def test_new_game_resets_completion_status():
+    client = app.app.test_client()
+    client.get('/new')
+    solution = deepcopy(app.CURRENT['solution'])
+    client.post('/check', json={'board': solution})
+
+    assert app.CURRENT['completed'] is True
+
+    client.get('/new')
+
+    assert app.CURRENT['completed'] is False
 
 
 def test_check_route_stops_timer_when_solution_is_correct():
