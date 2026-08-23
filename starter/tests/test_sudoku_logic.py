@@ -1,4 +1,5 @@
 import sys
+from copy import deepcopy
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,3 +65,9 @@ def test_generate_puzzle_returns_valid_puzzle_and_solution():
     assert any(cell == sudoku_logic.EMPTY for row in puzzle for cell in row)
     assert all(cell != sudoku_logic.EMPTY for row in solution for cell in row)
     assert puzzle != solution
+
+
+def test_generate_puzzle_has_exactly_one_valid_solution():
+    for _ in range(5):
+        puzzle, _ = sudoku_logic.generate_puzzle(clues=35)
+        assert sudoku_logic.count_solutions(deepcopy(puzzle), 2) == 1
