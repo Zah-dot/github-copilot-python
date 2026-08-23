@@ -2,11 +2,47 @@ import sys
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import sudoku_logic
+
+
+def count_clues(board):
+    return sum(cell != sudoku_logic.EMPTY for row in board for cell in row)
+
+
+def assert_board_is_valid(board):
+    for row in board:
+        seen = set()
+        for value in row:
+            if value == sudoku_logic.EMPTY:
+                continue
+            assert value not in seen
+            seen.add(value)
+
+    for col in range(sudoku_logic.SIZE):
+        seen = set()
+        for row in range(sudoku_logic.SIZE):
+            value = board[row][col]
+            if value == sudoku_logic.EMPTY:
+                continue
+            assert value not in seen
+            seen.add(value)
+
+    for start_row in range(0, sudoku_logic.SIZE, 3):
+        for start_col in range(0, sudoku_logic.SIZE, 3):
+            seen = set()
+            for row in range(start_row, start_row + 3):
+                for col in range(start_col, start_col + 3):
+                    value = board[row][col]
+                    if value == sudoku_logic.EMPTY:
+                        continue
+                    assert value not in seen
+                    seen.add(value)
 
 
 def test_create_empty_board_returns_9x9_zero_grid():
@@ -65,6 +101,38 @@ def test_generate_puzzle_returns_valid_puzzle_and_solution():
     assert any(cell == sudoku_logic.EMPTY for row in puzzle for cell in row)
     assert all(cell != sudoku_logic.EMPTY for row in solution for cell in row)
     assert puzzle != solution
+
+
+@pytest.mark.parametrize('difficulty', ['easy', 'medium', 'hard', 'Easy', 'Medium', 'Hard'])
+def test_generate_puzzle_accepts_all_difficulty_levels(difficulty):
+    puzzle, solution = sudoku_logic.generate_puzzle(difficulty=difficulty)
+
+    assert len(puzzle) == sudoku_logic.SIZE
+    assert len(solution) == sudoku_logic.SIZE
+    assert any(cell == sudoku_logic.EMPTY for row in puzzle for cell in row)
+    assert all(cell != sudoku_logic.EMPTY for row in solution for cell in row)
+    assert sudoku_logic.count_solutions(deepcopy(puzzle), 2) == 1
+
+
+@pytest.mark.parametrize(
+    'difficulty, min_clues, max_clues',
+    [
+        ('easy', 40, 50),
+        ('medium', 30, 38),
+        ('hard', 22, 31),
+    ],
+)
+def test_generate_puzzle_uses_expected_clue_ranges(difficulty, min_clues, max_clues):
+    for _ in range(5):
+        puzzle, _ = sudoku_logic.generate_puzzle(difficulty=difficulty)
+        clue_count = count_clues(puzzle)
+        assert min_clues <= clue_count <= max_clues
+        assert_board_is_valid(puzzle)
+
+
+def test_generate_puzzle_rejects_invalid_difficulty():
+    with pytest.raises(ValueError, match='Invalid difficulty'):
+        sudoku_logic.generate_puzzle(difficulty='expert')
 
 
 def test_generate_puzzle_has_exactly_one_valid_solution():

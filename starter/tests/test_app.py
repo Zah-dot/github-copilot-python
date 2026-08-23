@@ -34,6 +34,27 @@ def test_new_game_route_returns_9x9_puzzle_json():
     assert app.CURRENT['solution'] is not None
 
 
+def test_new_game_route_accepts_all_difficulty_levels():
+    client = app.app.test_client()
+    for difficulty in ['easy', 'medium', 'hard']:
+        response = client.get(f'/new?difficulty={difficulty}')
+        data = response.get_json()
+
+        assert response.status_code == 200, data
+        assert 'puzzle' in data
+        assert data['difficulty'] == difficulty
+        assert len(data['puzzle']) == app.sudoku_logic.SIZE
+
+
+def test_new_game_route_rejects_invalid_difficulty():
+    client = app.app.test_client()
+    response = client.get('/new?difficulty=legendary')
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert 'Invalid difficulty' in data['error']
+
+
 def test_check_route_without_active_game_returns_error():
     client = app.app.test_client()
     app.CURRENT['puzzle'] = None

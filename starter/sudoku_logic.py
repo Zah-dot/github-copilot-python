@@ -4,11 +4,47 @@ import random
 SIZE = 9
 EMPTY = 0
 
+DIFFICULTY_LEVELS = {
+    'easy': {'label': 'Easy', 'clues': 45},
+    'medium': {'label': 'Medium', 'clues': 36},
+    'hard': {'label': 'Hard', 'clues': 27},
+}
+
+
 def deep_copy(board):
     return copy.deepcopy(board)
 
+
 def create_empty_board():
     return [[EMPTY for _ in range(SIZE)] for _ in range(SIZE)]
+
+
+def normalize_difficulty(difficulty=None, clues=None):
+    if clues is not None:
+        if isinstance(clues, str):
+            normalized = clues.strip().lower()
+            if normalized in DIFFICULTY_LEVELS:
+                return normalize_difficulty(difficulty=normalized)
+        clue_count = int(clues)
+        if clue_count < 1 or clue_count > SIZE * SIZE:
+            raise ValueError('Clue count must be between 1 and 81.')
+        return clue_count
+
+    if difficulty is None:
+        difficulty = 'easy'
+
+    if isinstance(difficulty, int):
+        clue_count = difficulty
+        if clue_count < 1 or clue_count > SIZE * SIZE:
+            raise ValueError('Clue count must be between 1 and 81.')
+        return clue_count
+
+    key = str(difficulty).strip().lower()
+    if key not in DIFFICULTY_LEVELS:
+        valid_levels = ', '.join(DIFFICULTY_LEVELS)
+        raise ValueError(f'Invalid difficulty: {difficulty}. Valid options are: {valid_levels}.')
+
+    return DIFFICULTY_LEVELS[key]['clues']
 
 def is_safe(board, row, col, num):
     # Check row and column
@@ -86,10 +122,11 @@ def remove_cells(board, clues):
             board[row][col] = current_value
         else:
             removed += 1
-def generate_puzzle(clues=35):
+def generate_puzzle(clues=None, difficulty='easy'):
+    target_clues = normalize_difficulty(difficulty=difficulty, clues=clues)
     board = create_empty_board()
     fill_board(board)
     solution = deep_copy(board)
-    remove_cells(board, clues)
+    remove_cells(board, target_clues)
     puzzle = deep_copy(board)
     return puzzle, solution

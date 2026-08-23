@@ -38,18 +38,27 @@ function renderPuzzle(puz) {
       if (val !== 0) {
         inp.value = val;
         inp.disabled = true;
+        inp.readOnly = true;
         inp.className += ' prefilled';
       } else {
         inp.value = '';
         inp.disabled = false;
+        inp.readOnly = false;
       }
     }
   }
 }
 
 async function newGame() {
-  const res = await fetch('/new');
+  const difficulty = document.getElementById('difficulty-select').value;
+  const res = await fetch(`/new?difficulty=${encodeURIComponent(difficulty)}`);
   const data = await res.json();
+  if (!res.ok) {
+    const msg = document.getElementById('message');
+    msg.style.color = '#d32f2f';
+    msg.innerText = data.error || 'Unable to start a new game.';
+    return;
+  }
   renderPuzzle(data.puzzle);
   document.getElementById('message').innerText = '';
 }
