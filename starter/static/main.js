@@ -188,6 +188,12 @@ function resetTimer() {
   updateTimerDisplay(0);
 }
 
+function getCellBoxVariant(row, col) {
+  const boxRow = Math.floor(row / 3);
+  const boxCol = Math.floor(col / 3);
+  return (boxRow + boxCol) % 2 === 0 ? 'box-a' : 'box-b';
+}
+
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
   boardDiv.innerHTML = '';
@@ -198,9 +204,10 @@ function createBoardElement() {
       const input = document.createElement('input');
       input.type = 'text';
       input.maxLength = 1;
-      input.className = 'sudoku-cell';
+      input.className = `sudoku-cell ${getCellBoxVariant(i, j)}`;
       input.dataset.row = i;
       input.dataset.col = j;
+      input.dataset.boxVariant = getCellBoxVariant(i, j);
       input.addEventListener('input', (event) => {
         const val = event.target.value.replace(/[^1-9]/g, '');
         event.target.value = val;
@@ -221,7 +228,7 @@ function renderPuzzle(puz) {
       const idx = i * SIZE + j;
       const val = puzzle[i][j];
       const inp = inputs[idx];
-      inp.className = 'sudoku-cell';
+      inp.className = `sudoku-cell ${inp.dataset.boxVariant || getCellBoxVariant(i, j)}`;
       if (val !== 0) {
         inp.value = val;
         inp.disabled = true;
@@ -330,9 +337,9 @@ async function checkSolution() {
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
     if (inp.disabled) continue;
-    inp.className = 'sudoku-cell';
+    inp.className = `sudoku-cell ${inp.dataset.boxVariant || 'box-a'}`;
     if (incorrect.has(idx)) {
-      inp.className = 'sudoku-cell incorrect';
+      inp.className = `sudoku-cell ${inp.dataset.boxVariant || 'box-a'} incorrect`;
     }
   }
 

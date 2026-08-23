@@ -15,6 +15,8 @@
     --cell-bg: #fafafa;
     --cell-border: #bbbbbb;
     --board-border: #333333;
+    --box-a-bg: #edf3ff;
+    --box-b-bg: #f8fbff;
     --prefilled-bg: #e0e0e0;
     --prefilled-text: #333333;
     --focus-bg: #dff7ff;
@@ -44,6 +46,8 @@ html[data-theme='dark'] {
     --cell-bg: #0f172a;
     --cell-border: #475569;
     --board-border: #dfe7f1;
+    --box-a-bg: #1b2a3d;
+    --box-b-bg: #162131;
     --prefilled-bg: #374151;
     --prefilled-text: #f3f4f6;
     --focus-bg: #123a52;
@@ -56,13 +60,22 @@ html[data-theme='dark'] {
     --score-text: #f3f4f6;
 }
 
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
 body {
     font-family: Arial, sans-serif;
     background: var(--bg-color);
     color: var(--text-color);
     text-align: center;
     margin: 0;
-    padding: 0;
+    padding: 0 12px 32px;
     transition: background 0.2s ease, color 0.2s ease;
 }
 
@@ -72,27 +85,40 @@ h1 {
 }
 
 #sudoku-board {
-    display: inline-block;
-    margin: 30px auto;
+    display: flex;
+    flex-direction: column;
+    width: min(92vw, 540px);
+    max-width: 100%;
+    aspect-ratio: 1;
+    margin: 24px auto 0;
     border: 4px solid var(--board-border);
     background: var(--surface-color);
     box-shadow: 0 2px 8px var(--shadow);
+    overflow: hidden;
 }
 
 .sudoku-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 .sudoku-cell {
-    width: 40px;
-    height: 40px;
+    width: 100%;
+    aspect-ratio: 1;
     border: 1px solid var(--cell-border);
     text-align: center;
-    font-size: 20px;
+    font-size: clamp(1rem, 2vw, 2rem);
+    padding: 0;
     outline: none;
-    background: var(--cell-bg);
+    background: var(--box-a-bg);
     color: var(--text-color);
     transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sudoku-cell.box-b {
+    background: var(--box-b-bg);
 }
 
 .sudoku-cell:focus {
@@ -109,31 +135,37 @@ h1 {
     background: var(--incorrect-bg);
 }
 
-.sudoku-cell:nth-child(3),
-.sudoku-cell:nth-child(6) {
+.sudoku-cell:nth-child(3n) {
     border-right: 3px solid var(--board-border);
 }
 
-.sudoku-row:nth-child(3) .sudoku-cell,
-.sudoku-row:nth-child(6) .sudoku-cell {
+.sudoku-row:nth-child(3n) .sudoku-cell {
     border-bottom: 3px solid var(--board-border);
 }
 
 .controls {
-    margin: 20px auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px 12px;
+    max-width: min(1000px, 92vw);
+    margin: 20px auto 0;
+    padding: 0 4px;
     color: var(--text-color);
 }
 
 button {
-    padding: 8px 18px;
-    margin: 0 8px;
-    font-size: 16px;
+    padding: 9px 16px;
+    margin: 0;
+    font-size: clamp(0.9rem, 1.6vw, 1rem);
     border: none;
     background: var(--button-bg);
     color: var(--button-text);
     border-radius: 4px;
     cursor: pointer;
     transition: background 0.2s ease, color 0.2s ease;
+    min-height: 44px;
 }
 
 button:hover {
@@ -141,27 +173,29 @@ button:hover {
 }
 
 #timer-display {
-    margin-left: 16px;
-    font-size: 16px;
+    margin-left: 0;
+    font-size: clamp(0.9rem, 1.6vw, 1rem);
     font-weight: bold;
     color: var(--text-color);
 }
 
 #message {
-    margin-left: 20px;
-    font-size: 16px;
+    display: inline-block;
+    min-height: 1.5em;
+    margin-left: 0;
+    font-size: clamp(0.9rem, 1.6vw, 1rem);
     color: var(--message-error);
 }
 
 #difficulty-select,
 #player-name {
     padding: 8px 10px;
-    font-size: 14px;
+    font-size: clamp(0.9rem, 1.4vw, 1rem);
     color: var(--text-color);
     background: var(--input-bg);
     border: 1px solid var(--input-border);
     border-radius: 4px;
-    margin-right: 8px;
+    margin-right: 0;
 }
 
 #difficulty-select {
@@ -169,11 +203,11 @@ button:hover {
 }
 
 #player-name {
-    width: 140px;
+    width: min(180px, 100%);
 }
 
 #leaderboard-panel {
-    width: min(540px, 90vw);
+    width: min(540px, calc(100vw - 24px));
     margin: 20px auto 40px;
     background: var(--panel-color);
     border: 1px solid var(--panel-border);
@@ -185,7 +219,7 @@ button:hover {
 #leaderboard-panel h2 {
     margin: 0 0 12px;
     color: var(--heading-color);
-    font-size: 22px;
+    font-size: clamp(1.2rem, 2.1vw, 1.6rem);
 }
 
 #leaderboard-list {
@@ -196,11 +230,11 @@ button:hover {
 
 .score-item {
     display: grid;
-    grid-template-columns: 40px minmax(110px, 1.3fr) 90px 110px;
-    gap: 12px;
+    grid-template-columns: 36px minmax(0, 1.3fr) 70px minmax(0, 1.2fr);
+    gap: 8px;
     padding: 8px 0;
     border-bottom: 1px solid var(--score-border);
-    font-size: 15px;
+    font-size: 0.94rem;
     color: var(--score-text);
 }
 
@@ -218,4 +252,40 @@ button:hover {
     text-align: center;
     color: var(--muted-text);
     padding-top: 8px;
+}
+
+@media (max-width: 640px) {
+    body {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    #sudoku-board {
+        width: min(94vw, 420px);
+    }
+
+    .controls {
+        max-width: 100%;
+        gap: 8px;
+    }
+
+    .controls > * {
+        flex: 1 1 100%;
+    }
+
+    #difficulty-select,
+    #player-name,
+    button,
+    #timer-display,
+    #message,
+    #hints-used {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .score-item {
+        grid-template-columns: 28px minmax(0, 1.2fr) 64px minmax(0, 1.2fr);
+        gap: 6px;
+        font-size: 0.8rem;
+    }
 }
