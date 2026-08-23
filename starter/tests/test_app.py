@@ -108,3 +108,58 @@ def test_generate_puzzle_and_check_route_are_consistent():
     assert len(solution) == 9
     assert all(cell in range(0, 10) for row in puzzle for cell in row)
     assert all(cell in range(1, 10) for row in solution for cell in row)
+
+
+def test_hint_route_without_active_game_returns_error():
+    client = app.app.test_client()
+    app.CURRENT['puzzle'] = None
+    app.CURRENT['solution'] = None
+
+    response = client.post('/hint', json={'board': [[0 for _ in range(9)] for _ in range(9)]})
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data['error'] == 'No game in progress'
+
+
+def test_hint_route_provides_hint_and_increments_count():
+    client = app.app.test_client()
+    # start a new game
+    response = client.get('/new')
+    data = response.get_json()
+    puzzle = deepcopy(data['puzzle'])
+    solution = deepcopy(app.CURRENT['solution'])
+
+    # prepare player's board equal to the starting puzzle (no player entries)
+    board = deepcopy(puzzle)
+
+    # ensure puzzle has at least one empty cell
+    assert any(cell == 0 for row in puzzle for cell in row)
+
+    response = client.post('/hint', json={'board': board})
+    hint_data = response.get_json()
+
+    assert response.status_code == 200
+    assert 'cell' in hint_data and 'value' in hint_data
+    row, col = hint_data['cell']
+    value = hint_data['value']
+
+    # hinted cell must have been empty in the original puzzle
+    assert puzzle[row][col] == 0
+    # hinted value matches solution
+    assert value == solution[row][col]
+    # server stored the hint and incremented counter
+    assert app.CURRENT['puzzle'][row][col] == value
+    assert app.CURRENT['hints_used'] == 1
+
+
+def test_new_game_resets_hints_count():
+    client = app.app.test_client()
+    client.get('/new')
+    # use a hint
+    board = deepcopy(app.CURRENT['puzzle'])
+    client.post('/hint', json={'board': board})
+    assert app.CURRENT['hints_used'] == 1
+    # new game resets hints
+    client.get('/new')
+    assert app.CURRENT['hints_used'] == 0

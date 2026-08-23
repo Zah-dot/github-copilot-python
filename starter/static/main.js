@@ -91,6 +91,7 @@ async function checkSolution() {
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
     if (inp.disabled) continue;
+    // reset classes for editable cells
     inp.className = 'sudoku-cell';
     if (incorrect.has(idx)) {
       inp.className = 'sudoku-cell incorrect';
@@ -105,9 +106,58 @@ async function checkSolution() {
   }
 }
 
+async function requestHint() {
+  const boardDiv = document.getElementById('sudoku-board');
+  const inputs = boardDiv.getElementsByTagName('input');
+  const board = [];
+  for (let i = 0; i < SIZE; i++) {
+    board[i] = [];
+    for (let j = 0; j < SIZE; j++) {
+      const idx = i * SIZE + j;
+      const val = inputs[idx].value;
+      board[i][j] = val ? parseInt(val, 10) : 0;
+    }
+  }
+
+  const res = await fetch('/hint', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({board})
+  });
+  const data = await res.json();
+  const msg = document.getElementById('message');
+  if (data.error) {
+    msg.style.color = '#d32f2f';
+    msg.innerText = data.error;
+    return;
+  }
+
+  const [row, col] = data.cell;
+  const value = data.value;
+  const idx = row * SIZE + col;
+  const inp = inputs[idx];
+  inp.value = value;
+  inp.disabled = true;
+  inp.readOnly = true;
+  inp.classList.add('prefilled');
+  // Remove incorrect marking if any
+  inp.classList.remove('incorrect');
+
+  // Update hints used display if present
+  const hintsSpan = document.getElementById('hints-used');
+  if (hintsSpan) {
+    hintsSpan.innerText = `Hints used: ${data.hints_used}`;
+  }
+
+  msg.style.color = '#000';
+  msg.innerText = 'Hint applied.';
+}
+
 // Wire buttons
 window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
+  const hintBtn = document.getElementById('hint-button');
+  if (hintBtn) hintBtn.addEventListener('click', requestHint);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   // initialize
   newGame();
