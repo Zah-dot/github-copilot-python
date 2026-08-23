@@ -1,4 +1,5 @@
 import sys
+import time
 from copy import deepcopy
 from pathlib import Path
 
@@ -163,3 +164,30 @@ def test_new_game_resets_hints_count():
     # new game resets hints
     client.get('/new')
     assert app.CURRENT['hints_used'] == 0
+
+
+def test_new_game_starts_timer_state():
+    client = app.app.test_client()
+    before = time.time()
+    client.get('/new')
+
+    assert app.CURRENT['timer_started_at'] is not None
+    assert app.CURRENT['timer_started_at'] >= before
+    assert app.CURRENT['timer_completed_at'] is None
+    assert app.CURRENT['timer_elapsed_seconds'] == 0
+
+
+def test_check_route_stops_timer_when_solution_is_correct():
+    client = app.app.test_client()
+    client.get('/new')
+    app.CURRENT['timer_started_at'] = time.time() - 12
+    solution = deepcopy(app.CURRENT['solution'])
+
+    response = client.post('/check', json={'board': solution})
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data['solved'] is True
+    assert data['elapsed_seconds'] >= 12
+    assert app.CURRENT['timer_completed_at'] is not None
+    assert app.CURRENT['timer_elapsed_seconds'] >= 12

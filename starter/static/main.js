@@ -2,6 +2,67 @@
 const SIZE = 9;
 let puzzle = [];
 
+const timerState = {
+  startedAt: 0,
+  elapsedMs: 0,
+  running: false,
+  finished: false,
+  rafId: null,
+};
+
+function formatSeconds(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function updateTimerDisplay(elapsedMs) {
+  const timerDisplay = document.getElementById('timer-display');
+  if (!timerDisplay) return;
+  const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+  timerDisplay.innerText = `Time: ${formatSeconds(totalSeconds)}`;
+}
+
+function startTimer(startedAtMs = Date.now()) {
+  if (timerState.running) return;
+  timerState.startedAt = startedAtMs;
+  timerState.running = true;
+  timerState.finished = false;
+  updateTimerDisplay(timerState.elapsedMs);
+
+  const tick = () => {
+    if (!timerState.running || timerState.finished) return;
+    const elapsedMs = Date.now() - timerState.startedAt;
+    updateTimerDisplay(elapsedMs);
+    timerState.rafId = requestAnimationFrame(tick);
+  };
+
+  timerState.rafId = requestAnimationFrame(tick);
+}
+
+function stopTimer() {
+  timerState.running = false;
+  timerState.finished = true;
+  if (timerState.rafId) {
+    cancelAnimationFrame(timerState.rafId);
+    timerState.rafId = null;
+  }
+  timerState.elapsedMs = Date.now() - timerState.startedAt;
+  updateTimerDisplay(timerState.elapsedMs);
+}
+
+function resetTimer() {
+  timerState.startedAt = 0;
+  timerState.elapsedMs = 0;
+  timerState.running = false;
+  timerState.finished = false;
+  if (timerState.rafId) {
+    cancelAnimationFrame(timerState.rafId);
+    timerState.rafId = null;
+  }
+  updateTimerDisplay(0);
+}
+
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
   boardDiv.innerHTML = '';
@@ -60,6 +121,12 @@ async function newGame() {
     return;
   }
   renderPuzzle(data.puzzle);
+  resetTimer();
+  if (data.timer_started_at) {
+    startTimer(data.timer_started_at * 1000);
+  } else {
+    startTimer();
+  }
   document.getElementById('message').innerText = '';
 }
 
@@ -98,6 +165,7 @@ async function checkSolution() {
     }
   }
   if (incorrect.size === 0) {
+    stopTimer();
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
   } else {

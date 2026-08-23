@@ -1,3 +1,5 @@
+import time
+
 from flask import Flask, render_template, jsonify, request
 import sudoku_logic
 import random
@@ -9,7 +11,10 @@ CURRENT = {
     'puzzle': None,
     'solution': None,
     'difficulty': None,
-    'hints_used': 0
+    'hints_used': 0,
+    'timer_started_at': None,
+    'timer_completed_at': None,
+    'timer_elapsed_seconds': 0,
 }
 
 @app.route('/')
@@ -33,7 +38,15 @@ def new_game():
     CURRENT['solution'] = solution
     CURRENT['difficulty'] = difficulty
     CURRENT['hints_used'] = 0
-    return jsonify({'puzzle': puzzle, 'difficulty': difficulty})
+    CURRENT['timer_started_at'] = time.time()
+    CURRENT['timer_completed_at'] = None
+    CURRENT['timer_elapsed_seconds'] = 0
+    return jsonify({
+        'puzzle': puzzle,
+        'difficulty': difficulty,
+        'timer_started_at': CURRENT['timer_started_at'],
+        'timer_elapsed_seconds': CURRENT['timer_elapsed_seconds'],
+    })
 
 @app.route('/check', methods=['POST'])
 def check_solution():
@@ -47,7 +60,31 @@ def check_solution():
         for j in range(sudoku_logic.SIZE):
             if board[i][j] != solution[i][j]:
                 incorrect.append([i, j])
-    return jsonify({'incorrect': incorrect})
+
+    solved = not incorrect
+    if solved:
+        CURRENT['timer_completed_at'] = time.time()
+        if CURRENT['timer_started_at'] is not None:
+            CURRENT['timer_elapsed_seconds'] = max(0, int(CURRENT['timer_completed_at'] - CURRENT['timer_started_at']))
+        else:
+            CURRENT['timer_elapsed_seconds'] = 0
+        return jsonify({
+            'incorrect': [],
+            'solved': True,
+            'elapsed_seconds': CURRENT['timer_elapsed_seconds'],
+            'timer_completed_at': CURRENT['timer_completed_at'],
+        })
+
+    CURRENT['timer_completed_at'] = None
+    if CURRENT['timer_started_at'] is not None:
+        CURRENT['timer_elapsed_seconds'] = max(0, int(time.time() - CURRENT['timer_started_at']))
+    else:
+        CURRENT['timer_elapsed_seconds'] = 0
+    return jsonify({
+        'incorrect': incorrect,
+        'solved': False,
+        'elapsed_seconds': CURRENT['timer_elapsed_seconds'],
+    })
 
 
 @app.route('/hint', methods=['POST'])
