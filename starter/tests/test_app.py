@@ -18,6 +18,8 @@ def test_index_route_renders_main_page():
     assert response.status_code == 200
     assert b'<title>Sudoku Game</title>' in response.data
     assert b'id="sudoku-board"' in response.data
+    assert b'id="theme-toggle"' in response.data
+    assert b'sudoku-theme' in response.data
 
 
 def test_new_game_route_returns_9x9_puzzle_json():

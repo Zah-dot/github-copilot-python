@@ -3,6 +3,19 @@
 <head>
   <meta charset="utf-8">
   <title>Sudoku Game</title>
+  <script>
+    (function applyStoredTheme() {
+      try {
+        const storageKey = 'sudoku-theme';
+        const savedTheme = localStorage.getItem(storageKey);
+        const prefersDarkTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = savedTheme || (prefersDarkTheme ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (error) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -17,6 +30,7 @@
     </select>
     <label for="player-name">Player:</label>
     <input id="player-name" type="text" maxlength="20" placeholder="Your name" value="Player" />
+    <button id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark Mode</button>
     <button id="new-game">New Game</button>
     <button id="hint-button">Hint</button>
     <button id="check-solution">Check Solution</button>

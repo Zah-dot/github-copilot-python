@@ -1,22 +1,82 @@
+:root {
+    --bg-color: #f4f4f4;
+    --surface-color: #ffffff;
+    --surface-alt: #fafafa;
+    --panel-color: #ffffff;
+    --panel-border: #d7d7d7;
+    --text-color: #1f2933;
+    --heading-color: #333333;
+    --muted-text: #5f6c7b;
+    --button-bg: #1976d2;
+    --button-text: #ffffff;
+    --button-hover-bg: #1565c0;
+    --input-bg: #ffffff;
+    --input-border: #bfc6ce;
+    --cell-bg: #fafafa;
+    --cell-border: #bbbbbb;
+    --board-border: #333333;
+    --prefilled-bg: #e0e0e0;
+    --prefilled-text: #333333;
+    --focus-bg: #dff7ff;
+    --incorrect-bg: #ffcdd2;
+    --shadow: rgba(0, 0, 0, 0.08);
+    --message-error: #d32f2f;
+    --message-success: #388e3c;
+    --score-header: #666666;
+    --score-border: #eeeeee;
+    --score-text: #222222;
+}
+
+html[data-theme='dark'] {
+    --bg-color: #111827;
+    --surface-color: #1f2937;
+    --surface-alt: #101826;
+    --panel-color: #1e2736;
+    --panel-border: #374151;
+    --text-color: #e5e7eb;
+    --heading-color: #f3f4f6;
+    --muted-text: #c5ced8;
+    --button-bg: #3b82f6;
+    --button-text: #ecf2ff;
+    --button-hover-bg: #2563eb;
+    --input-bg: #111827;
+    --input-border: #4b5563;
+    --cell-bg: #0f172a;
+    --cell-border: #475569;
+    --board-border: #dfe7f1;
+    --prefilled-bg: #374151;
+    --prefilled-text: #f3f4f6;
+    --focus-bg: #123a52;
+    --incorrect-bg: #7f1d1d;
+    --shadow: rgba(0, 0, 0, 0.35);
+    --message-error: #fca5a5;
+    --message-success: #86efac;
+    --score-header: #d1d5db;
+    --score-border: #374151;
+    --score-text: #f3f4f6;
+}
+
 body {
     font-family: Arial, sans-serif;
-    background: #f4f4f4;
+    background: var(--bg-color);
+    color: var(--text-color);
     text-align: center;
     margin: 0;
     padding: 0;
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
 h1 {
     margin-top: 30px;
-    color: #333;
+    color: var(--heading-color);
 }
 
 #sudoku-board {
     display: inline-block;
     margin: 30px auto;
-    border: 4px solid #333;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 4px solid var(--board-border);
+    background: var(--surface-color);
+    box-shadow: 0 2px 8px var(--shadow);
 }
 
 .sudoku-row {
@@ -26,40 +86,42 @@ h1 {
 .sudoku-cell {
     width: 40px;
     height: 40px;
-    border: 1px solid #bbb;
+    border: 1px solid var(--cell-border);
     text-align: center;
     font-size: 20px;
     outline: none;
-    background: #fafafa;
-    transition: background 0.2s;
+    background: var(--cell-bg);
+    color: var(--text-color);
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
 .sudoku-cell:focus {
-    background: #e0f7fa;
+    background: var(--focus-bg);
 }
 
 .sudoku-cell.prefilled {
-    background: #e0e0e0;
+    background: var(--prefilled-bg);
     font-weight: bold;
-    color: #333;
+    color: var(--prefilled-text);
 }
 
 .sudoku-cell.incorrect {
-    background: #ffcdd2;
+    background: var(--incorrect-bg);
 }
 
 .sudoku-cell:nth-child(3),
 .sudoku-cell:nth-child(6) {
-    border-right: 3px solid #333;
+    border-right: 3px solid var(--board-border);
 }
 
 .sudoku-row:nth-child(3) .sudoku-cell,
 .sudoku-row:nth-child(6) .sudoku-cell {
-    border-bottom: 3px solid #333;
+    border-bottom: 3px solid var(--board-border);
 }
 
 .controls {
     margin: 20px auto;
+    color: var(--text-color);
 }
 
 button {
@@ -67,52 +129,62 @@ button {
     margin: 0 8px;
     font-size: 16px;
     border: none;
-    background: #1976d2;
-    color: #fff;
+    background: var(--button-bg);
+    color: var(--button-text);
     border-radius: 4px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
 button:hover {
-    background: #1565c0;
+    background: var(--button-hover-bg);
 }
 
 #timer-display {
     margin-left: 16px;
     font-size: 16px;
     font-weight: bold;
-    color: #1b1b1b;
+    color: var(--text-color);
 }
 
 #message {
     margin-left: 20px;
     font-size: 16px;
-    color: #d32f2f;
+    color: var(--message-error);
 }
 
+#difficulty-select,
 #player-name {
     padding: 8px 10px;
     font-size: 14px;
-    width: 140px;
-    border: 1px solid #bbb;
+    color: var(--text-color);
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
     border-radius: 4px;
     margin-right: 8px;
+}
+
+#difficulty-select {
+    min-width: 110px;
+}
+
+#player-name {
+    width: 140px;
 }
 
 #leaderboard-panel {
     width: min(540px, 90vw);
     margin: 20px auto 40px;
-    background: #fff;
-    border: 1px solid #d7d7d7;
+    background: var(--panel-color);
+    border: 1px solid var(--panel-border);
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px var(--shadow);
     padding: 16px 20px;
 }
 
 #leaderboard-panel h2 {
     margin: 0 0 12px;
-    color: #333;
+    color: var(--heading-color);
     font-size: 22px;
 }
 
@@ -127,9 +199,9 @@ button:hover {
     grid-template-columns: 40px minmax(110px, 1.3fr) 90px 110px;
     gap: 12px;
     padding: 8px 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--score-border);
     font-size: 15px;
-    color: #222;
+    color: var(--score-text);
 }
 
 .score-item:last-child {
@@ -138,12 +210,12 @@ button:hover {
 
 .score-item.header {
     font-weight: bold;
-    color: #666;
+    color: var(--score-header);
 }
 
 .score-item.empty {
     display: block;
     text-align: center;
-    color: #666;
+    color: var(--muted-text);
     padding-top: 8px;
 }

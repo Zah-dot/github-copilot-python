@@ -1,5 +1,6 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
+const THEME_STORAGE_KEY = 'sudoku-theme';
 const SCOREBOARD_KEY = 'sudoku-top-10-scores';
 const LAST_COMPLETED_GAME_KEY = 'sudoku-last-completed-game';
 const PLAYER_NAME_KEY = 'sudoku-player-name';
@@ -124,6 +125,27 @@ function updateHintsDisplay() {
   if (hintsSpan) {
     hintsSpan.innerText = `Hints used: ${currentHintsUsed}`;
   }
+}
+
+function applyTheme(themeName) {
+  const normalizedTheme = themeName === 'dark' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', normalizedTheme);
+  const toggleButton = document.getElementById('theme-toggle');
+  if (toggleButton) {
+    toggleButton.textContent = normalizedTheme === 'dark' ? 'Light Mode' : 'Dark Mode';
+    toggleButton.setAttribute('aria-pressed', String(normalizedTheme === 'dark'));
+  }
+
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme);
+  } catch (error) {
+    // Ignore storage errors while theme still updates in-memory.
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
 }
 
 function startTimer(startedAtMs = Date.now()) {
@@ -296,7 +318,7 @@ async function checkSolution() {
   const data = await res.json();
   const msg = document.getElementById('message');
   if (data.error) {
-    msg.style.color = '#d32f2f';
+    msg.style.color = 'var(--message-error)';
     msg.innerText = data.error;
     return;
   }
@@ -318,12 +340,12 @@ async function checkSolution() {
     stopTimer();
     const elapsedSeconds = Number(data.elapsed_seconds) || 0;
     recordCompletedScore(elapsedSeconds);
-    msg.style.color = '#388e3c';
+    msg.style.color = 'var(--message-success)';
     msg.innerText = `Congratulations! You solved it in ${formatSeconds(elapsedSeconds)}. Score recorded.`;
     return;
   }
 
-  msg.style.color = '#d32f2f';
+  msg.style.color = 'var(--message-error)';
   msg.innerText = 'Some cells are incorrect.';
 }
 
@@ -337,7 +359,7 @@ async function requestHint() {
   const data = await res.json();
   const msg = document.getElementById('message');
   if (data.error) {
-    msg.style.color = '#d32f2f';
+    msg.style.color = 'var(--message-error)';
     msg.innerText = data.error;
     return;
   }
@@ -357,11 +379,20 @@ async function requestHint() {
   currentHintsUsed = data.hints_used;
   updateHintsDisplay();
 
-  msg.style.color = '#000';
+  msg.style.color = 'var(--text-color)';
   msg.innerText = 'Hint applied.';
 }
 
 window.addEventListener('load', () => {
+  const storedTheme = (() => {
+    try {
+      return localStorage.getItem(THEME_STORAGE_KEY) || 'light';
+    } catch (error) {
+      return 'light';
+    }
+  })();
+  applyTheme(storedTheme);
+
   const playerNameInput = document.getElementById('player-name');
   if (playerNameInput) {
     const savedName = localStorage.getItem(PLAYER_NAME_KEY);
@@ -376,6 +407,11 @@ window.addEventListener('load', () => {
     difficultySelect.addEventListener('change', () => {
       currentDifficulty = difficultySelect.value;
     });
+  }
+
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
   }
 
   document.getElementById('new-game').addEventListener('click', newGame);
