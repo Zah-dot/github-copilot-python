@@ -211,6 +211,8 @@ function createBoardElement() {
       input.addEventListener('input', (event) => {
         const val = event.target.value.replace(/[^1-9]/g, '');
         event.target.value = val;
+        // Live update duplicate/conflict highlighting whenever a cell value changes
+        if (typeof updateConflicts === 'function') updateConflicts();
       });
       rowDiv.appendChild(input);
     }
@@ -241,6 +243,8 @@ function renderPuzzle(puz) {
       }
     }
   }
+  // Initial conflict pass in case prefilled values (or a misconfigured puzzle) create duplicates
+  if (typeof updateConflicts === 'function') updateConflicts();
 }
 
 function getPlayerName() {
@@ -315,6 +319,46 @@ function buildBoardFromInputs() {
   return board;
 }
 
+// Scan all cells and add/remove the 'conflict' class for any group duplicates.
+// A conflict occurs only when the same digit appears more than once in the same
+// row, column, or 3x3 box. Prefilled and player-entered cells are both considered.
+function updateConflicts() {
+  const boardDiv = document.getElementById('sudoku-board');
+  if (!boardDiv) return;
+  const inputs = Array.from(boardDiv.getElementsByTagName('input'));
+
+  // Clear existing conflict markers
+  inputs.forEach((el) => el.classList.remove('conflict'));
+
+  // Compare every pair of cells; mark both if they share value and share row/col/box
+  for (let i = 0; i < inputs.length; i++) {
+    const a = inputs[i];
+    const va = a.value;
+    if (!va) continue;
+    const rowA = Number(a.dataset.row);
+    const colA = Number(a.dataset.col);
+
+    for (let j = i + 1; j < inputs.length; j++) {
+      const b = inputs[j];
+      const vb = b.value;
+      if (!vb) continue;
+      if (va !== vb) continue; // only duplicates of the same digit
+
+      const rowB = Number(b.dataset.row);
+      const colB = Number(b.dataset.col);
+
+      const sameRow = rowA === rowB;
+      const sameCol = colA === colB;
+      const sameBox = Math.floor(rowA / 3) === Math.floor(rowB / 3) && Math.floor(colA / 3) === Math.floor(colB / 3);
+
+      if (sameRow || sameCol || sameBox) {
+        a.classList.add('conflict');
+        b.classList.add('conflict');
+      }
+    }
+  }
+}
+
 async function checkSolution() {
   const board = buildBoardFromInputs();
   const res = await fetch('/check', {
@@ -342,6 +386,9 @@ async function checkSolution() {
       inp.className = `sudoku-cell ${inp.dataset.boxVariant || 'box-a'} incorrect`;
     }
   }
+
+  // Recompute conflicts after check resets classes so conflict highlighting is preserved
+  if (typeof updateConflicts === 'function') updateConflicts();
 
   if (data.completed || data.solved) {
     stopTimer();
@@ -382,6 +429,9 @@ async function requestHint() {
   inp.readOnly = true;
   inp.classList.add('prefilled');
   inp.classList.remove('incorrect');
+
+  // Update conflicts because a new prefilled/hint value may create duplicates
+  if (typeof updateConflicts === 'function') updateConflicts();
 
   currentHintsUsed = data.hints_used;
   updateHintsDisplay();
